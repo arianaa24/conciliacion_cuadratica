@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="conciliacion_cuadratica_view_bank_statement_line_form_bank_rec_widget" model="ir.ui.view">
+            <field name="name">conciliacion_cuadratica.account.bank.statement.line.form.bank_rec_widget</field>
+            <field name="model">account.bank.statement.line</field>
+            <field name="inherit_id" ref="account_accountant.view_bank_statement_line_form_bank_rec_widget"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group" position="inside">
+                    <group>
+                        <field name="tipo_conciliacion_cuadratica" />
+                        <field name="tipo_conciliacion_cuadratica_pago" />
+                        <field name="cuenta_origen_conciliacion_cuadratica" invisible="tipo_conciliacion_cuadratica == False and tipo_conciliacion_cuadratica_pago == False"/>
+                        <field name="banco_origen_conciliacion_cuadratica" invisible="tipo_conciliacion_cuadratica == False and tipo_conciliacion_cuadratica_pago == False"/>
+                        <field name="date_conciliado"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        
+        <record id="conciliacion_cuadratica_view_bank_statement_line_kanban_bank_rec_widget" model="ir.ui.view">
+            <field name="name">conciliacion_cuadratica.account.bank.statement.line.kanban.bank_rec_widget</field>
+            <field name="model">account.bank.statement.line</field>
+            <field name="inherit_id" ref="account_accountant.view_bank_statement_line_kanban_bank_rec_widget"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@t-att-st-line-id='record.id.raw_value']" position="inside">
+                    <div class="d-flex">
+                        <!-- Row 3 -->
+                        <div id="row3_col1" class="text-truncate flex-fill">
+                            <field name="tipo_conciliacion_cuadratica" t-if="record.tipo_conciliacion_cuadratica"/>
+                            <field name="tipo_conciliacion_cuadratica_pago" t-if="record.tipo_conciliacion_cuadratica_pago"/>
+                        </div>
+                        <div id="row3_col2" class="text-truncate flex-fill">
+                            <field name="cuenta_origen_conciliacion_cuadratica" invisible="tipo_conciliacion_cuadratica == False and tipo_conciliacion_cuadratica_pago == False"/>
+                        </div>
+                        <div id="row3_col3" class="text-truncate flex-fill">
+                            <field name="banco_origen_conciliacion_cuadratica" invisible="tipo_conciliacion_cuadratica == False and tipo_conciliacion_cuadratica_pago == False"/>
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+
+
+    </data>
+</odoo>

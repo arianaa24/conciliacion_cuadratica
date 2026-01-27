@@ -12,7 +12,7 @@
     'website': "http://www.aquih.com",
 
     'category': 'Uncategorized',
-    'version': '0.2',
+    'version': '0.3',
 
     'depends': ['l10n_gt_extra'],
 
@@ -21,6 +21,7 @@
         'wizard/reporte_conciliacion_cuadratica_wizard_views.xml',
         'views/res_partner_bank_view.xml',
         'views/account_payment_view.xml',
+        'views/account_bank_statement_line_views.xml',
     ],
     
     'demo': [

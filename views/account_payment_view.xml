@@ -9,9 +9,9 @@
             <field name="arch" type="xml">
                 <field name="ref" position="after">
                     <field name="tipo_conciliacion_cuadratica" invisible="payment_type != 'inbound'"/>
-                    <field name="pago_conciliacion_cuadratica" invisible="payment_type != 'outbound'"/>
-                    <field name="cuenta_origen_conciliacion_cuadratica" invisible="tipo_conciliacion_cuadratica == False and pago_conciliacion_cuadratica == False"/>
-                    <field name="banco_origen_conciliacion_cuadratica" invisible="tipo_conciliacion_cuadratica == False and pago_conciliacion_cuadratica == False"/>
+                    <field name="tipo_conciliacion_cuadratica_pago" invisible="payment_type != 'outbound'"/>
+                    <field name="cuenta_origen_conciliacion_cuadratica" invisible="tipo_conciliacion_cuadratica == False and tipo_conciliacion_cuadratica_pago == False"/>
+                    <field name="banco_origen_conciliacion_cuadratica" invisible="tipo_conciliacion_cuadratica == False and tipo_conciliacion_cuadratica_pago == False"/>
                 </field>
             </field>
         </record>
