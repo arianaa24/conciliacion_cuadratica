@@ -38,7 +38,7 @@ class ReporteConciliacionCuadraticaWizard(models.TransientModel):
                 ('date', '>=', f"{dict['year']}-01-01"),
                 ('date', '<=', f"{dict['year']}-12-31"),
             ], order='date')
-            base_tablero = self.env['account.bank.statement.line'].search([
+            base_apuntes = self.env['account.bank.statement.line'].search([
                 ('journal_id','=',dict['diario_id'].id),
                 ('date','<=',f"{dict['year']}-12-31") #('date', '>=', f"{dict['year']}-01-01"),
             ])
@@ -53,7 +53,7 @@ class ReporteConciliacionCuadraticaWizard(models.TransientModel):
             saldo_final_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].saldo_inicial_por_mes(dict)[1]
             total_ingresos.append(saldo_incial_mensual)
             
-            cxc_locales_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('inbound', pagos=base_pagos, tipo_conciliacion='cxc_local')['pagos']
+            cxc_locales_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('inbound', pagos=base_pagos, tipo_conciliacion='cxc_local')['pagos']
             cxc_locales_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_mensuales(cxc_locales_datos)
             cxc_locales_lines = []
             for dato in cxc_locales_datos:
@@ -65,7 +65,7 @@ class ReporteConciliacionCuadraticaWizard(models.TransientModel):
                 })
             total_ingresos.append(cxc_locales_mensual) 
 
-            cxc_exterior_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('inbound', pagos=base_pagos, tipo_conciliacion='cxc_exterior')['pagos']
+            cxc_exterior_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('inbound', pagos=base_pagos, tipo_conciliacion='cxc_exterior')['pagos']
             cxc_exterior_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_mensuales(cxc_exterior_datos)
             cxc_exterior_lines = []
             for dato in cxc_exterior_datos:
@@ -77,21 +77,21 @@ class ReporteConciliacionCuadraticaWizard(models.TransientModel):
                 })
             total_ingresos.append(cxc_exterior_mensual)
             
-            cxc_local_exterior_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('inbound', pagos=base_pagos, tipo_conciliacion='cxc_interempresa')['pagos']
+            cxc_local_exterior_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('inbound', pagos=base_pagos, tipo_conciliacion='cxc_interempresa')['pagos']
             cxc_local_exterior_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_mensuales(cxc_local_exterior_datos)
             cxc_local_exterior_lines = []
             for dato in cxc_local_exterior_datos:
                 cxc_local_exterior_lines.append({
                     'empresa': dato.partner_id.name,
-                    'banco': dato.banco_origen_conciliacion_cuadratica,
-                    'cuenta': dato.cuenta_origen_conciliacion_cuadratica.name,
+                    'banco': dato.banco_origen_conciliacion_cuadratica.name,
+                    'cuenta': dato.cuenta_origen_conciliacion_cuadratica.acc_number,
                     'monto': dato.amount,
                     'mes': dato.date.month,
                 })
             total_ingresos.append(cxc_local_exterior_mensual)
 
-            cxc_socios_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('inbound', tablero=base_tablero, tipo_conciliacion='cxc_socios')['tablero']
-            cxc_socios_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_tablero_por_mes(cxc_socios_datos, dict['year'])
+            cxc_socios_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('inbound', apuntes=base_apuntes, tipo_conciliacion='cxc_socios')['apuntes']
+            cxc_socios_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_apuntes_por_mes(cxc_socios_datos, dict['year'])
             cxc_socios_mensual = cxc_socios_resultado['final']
             cxc_socios_transito = cxc_socios_resultado['transito']
             transitos_ingresos.append(cxc_socios_transito)
@@ -100,36 +100,36 @@ class ReporteConciliacionCuadraticaWizard(models.TransientModel):
                 if dato.date_conciliado and dato.date_conciliado.year == dict['year']:
                     cxc_socios_lines.append({
                         'socio': dato.partner_id.name,
-                        'banco': dato.banco_origen_conciliacion_cuadratica,
-                        'cuenta': dato.cuenta_origen_conciliacion_cuadratica.name,
+                        'banco': dato.banco_origen_conciliacion_cuadratica.name,
+                        'cuenta': dato.cuenta_origen_conciliacion_cuadratica.acc_number,
                         'monto': dato.amount,
                         'mes': dato.date_conciliado.month,
                     })
             total_ingresos.append(cxc_socios_mensual)
 
             
-            cxc_empleados_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('inbound', pagos=base_pagos, tablero=base_tablero, tipo_conciliacion='cxc_empleados')#['pagos']#['tablero']
+            cxc_empleados_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('inbound', pagos=base_pagos, apuntes=base_apuntes, tipo_conciliacion='cxc_empleados')#['pagos']#['apuntes']
             cxc_empleados_pagos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_mensuales(cxc_empleados_datos['pagos'])
-            cxc_empleados_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_tablero_por_mes(cxc_empleados_datos['tablero'], dict['year'])
-            cxc_empleados_tablero = cxc_empleados_resultado['final']
-            cxc_empleados_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].sumar_pagos_tablero(cxc_empleados_pagos,cxc_empleados_tablero)
+            cxc_empleados_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_apuntes_por_mes(cxc_empleados_datos['apuntes'], dict['year'])
+            cxc_empleados_apuntes = cxc_empleados_resultado['final']
+            cxc_empleados_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].sumar_pagos_apuntes(cxc_empleados_pagos,cxc_empleados_apuntes)
             total_ingresos.append(cxc_empleados_mensual)
 
-            anticipo_clientes_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('inbound', pagos=base_pagos, tablero=base_tablero, tipo_conciliacion='anticipo_clientes')#['pagos']#['tablero']
+            anticipo_clientes_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('inbound', pagos=base_pagos, apuntes=base_apuntes, tipo_conciliacion='anticipo_clientes')#['pagos']#['apuntes']
             anticipo_clientes_pagos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_mensuales(anticipo_clientes_datos['pagos'])
-            anticipo_clientes_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_tablero_por_mes(anticipo_clientes_datos['tablero'], dict['year'])
-            anticipo_clientes_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].sumar_pagos_tablero(anticipo_clientes_pagos,anticipo_clientes_resultado['final'])
+            anticipo_clientes_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_apuntes_por_mes(anticipo_clientes_datos['apuntes'], dict['year'])
+            anticipo_clientes_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].sumar_pagos_apuntes(anticipo_clientes_pagos,anticipo_clientes_resultado['final'])
             total_ingresos.append(anticipo_clientes_mensual)
 
-            intereses_ganados_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('inbound', tablero=base_tablero, tipo_conciliacion='intereses_ganados')['tablero']
-            intereses_ganados_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_tablero_por_mes(intereses_ganados_datos, dict['year'])
+            intereses_ganados_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('inbound', apuntes=base_apuntes, tipo_conciliacion='intereses_ganados')['apuntes']
+            intereses_ganados_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_apuntes_por_mes(intereses_ganados_datos, dict['year'])
             intereses_ganados_mensual = intereses_ganados_resultado['final']
             intereses_ganados_transito = intereses_ganados_resultado['transito']
             transitos_ingresos.append(intereses_ganados_transito)
             total_ingresos.append(intereses_ganados_mensual)
 
-            transfer_interempresa_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('inbound', tablero=base_tablero, tipo_conciliacion='transfer_interempresa')['tablero']
-            transfer_interempresa_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_tablero_por_mes(transfer_interempresa_datos, dict['year'])
+            transfer_interempresa_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('inbound', apuntes=base_apuntes, tipo_conciliacion='transfer_interempresa')['apuntes']
+            transfer_interempresa_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_apuntes_por_mes(transfer_interempresa_datos, dict['year'])
             transfer_interempresa_mensual = transfer_interempresa_resultado['final']
             transfer_interempresa_transito = transfer_interempresa_resultado['transito']
             transitos_ingresos.append(transfer_interempresa_transito)
@@ -137,14 +137,14 @@ class ReporteConciliacionCuadraticaWizard(models.TransientModel):
             for dato in transfer_interempresa_datos:
                 if dato.date_conciliado and dato.date_conciliado.year == dict['year']:
                     transfer_interempresa_lines.append({
-                        'banco': dato.banco_origen_conciliacion_cuadratica,
-                        'cuenta': dato.cuenta_origen_conciliacion_cuadratica.name,
+                        'banco': dato.banco_origen_conciliacion_cuadratica.name,
+                        'cuenta': dato.cuenta_origen_conciliacion_cuadratica.acc_number,
                         'monto': dato.amount,
                         'mes': dato.date_conciliado.month,
                     })
             total_ingresos.append(transfer_interempresa_mensual)
             
-            otros_ingresos_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('inbound', pagos=base_pagos, tipo_conciliacion= 'otros_ingresos')['pagos']
+            otros_ingresos_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('inbound', pagos=base_pagos, tipo_conciliacion= 'otros_ingresos')['pagos']
             otros_ingresos_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_mensuales(otros_ingresos_datos)
             otros_ingresos_lines = []
             for dato in otros_ingresos_datos:
@@ -160,18 +160,18 @@ class ReporteConciliacionCuadraticaWizard(models.TransientModel):
             
 
             # -- Cuentas por pagar: cxp
-            gastos_operativos_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('outbound', pagos=base_pagos, pago_conciliacion='gastos_operativos')['pagos']
+            gastos_operativos_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('outbound', pagos=base_pagos, pago_conciliacion='gastos_operativos')['pagos']
             gastos_operativos_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_mensuales(gastos_operativos_datos)
             total_egresos.append(gastos_operativos_mensual)
 
-            anticipos_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('outbound', pagos=base_pagos, tablero=base_tablero, pago_conciliacion='anticipos')#['pagos']#['tablero']
+            anticipos_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('outbound', pagos=base_pagos, apuntes=base_apuntes, pago_conciliacion='anticipos')#['pagos']#['apuntes']
             anticipos_pagos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_mensuales(anticipos_datos['pagos'])
-            anticipos_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_tablero_por_mes(anticipos_datos['tablero'], dict['year'])
-            anticipos_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].sumar_pagos_tablero(anticipos_pagos, anticipos_resultado['final'])
+            anticipos_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_apuntes_por_mes(anticipos_datos['apuntes'], dict['year'])
+            anticipos_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].sumar_pagos_apuntes(anticipos_pagos, anticipos_resultado['final'])
             total_egresos.append(anticipos_mensual)
 
-            prestamos_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('outbound', tablero=base_tablero, pago_conciliacion='prestamos')['tablero']
-            prestamos_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_tablero_por_mes(prestamos_datos, dict['year'])
+            prestamos_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('outbound', apuntes=base_apuntes, pago_conciliacion='prestamos')['apuntes']
+            prestamos_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_apuntes_por_mes(prestamos_datos, dict['year'])
             prestamos_mensual = prestamos_resultado['final']
             prestamos_transito = prestamos_resultado['transito']
             transitos_egresos.append(prestamos_transito)
@@ -180,26 +180,26 @@ class ReporteConciliacionCuadraticaWizard(models.TransientModel):
                 if dato.date_conciliado and dato.date_conciliado.year == dict['year']:
                     prestamos_lines.append({
                         'nombre': dato.partner_id.name,
-                        'banco': dato.banco_origen_conciliacion_cuadratica,
-                        'cuenta': dato.cuenta_origen_conciliacion_cuadratica.name,
+                        'banco': dato.banco_origen_conciliacion_cuadratica.name,
+                        'cuenta': dato.cuenta_origen_conciliacion_cuadratica.acc_number,
                         'monto': dato.amount,
                         'mes': dato.date_conciliado.month,
                     })
             total_egresos.append(prestamos_mensual)
 
-            dividendos_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('outbound', pagos=base_pagos, tablero=base_tablero, pago_conciliacion='dividendos')#['pagos']#['tablero']
+            dividendos_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('outbound', pagos=base_pagos, apuntes=base_apuntes, pago_conciliacion='dividendos')#['pagos']#['apuntes']
             dividendos_pagos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_mensuales(dividendos_datos['pagos'])
-            dividendos_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_tablero_por_mes(dividendos_datos['tablero'], dict['year'])
-            dividendos_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].sumar_pagos_tablero(dividendos_pagos, dividendos_resultado['final'])
-            lineas_unificadas = list(dividendos_datos['pagos']) + list(dividendos_datos['tablero'])
+            dividendos_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_apuntes_por_mes(dividendos_datos['apuntes'], dict['year'])
+            dividendos_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].sumar_pagos_apuntes(dividendos_pagos, dividendos_resultado['final'])
+            lineas_unificadas = list(dividendos_datos['pagos']) + list(dividendos_datos['apuntes'])
             dividendos_lines = []
             primeros_10_dividendos_lines = lineas_unificadas[:10]
             for dato in primeros_10_dividendos_lines:
                 mes = dato.date_conciliado.month if dato._name == 'account.bank.statement.line' else dato.date.month
                 dividendos_lines.append({
                     'socio': dato.partner_id.name,
-                    'banco': dato.banco_origen_conciliacion_cuadratica,
-                    'cuenta': dato.cuenta_origen_conciliacion_cuadratica.name,
+                    'banco': dato.banco_origen_conciliacion_cuadratica.name,
+                    'cuenta': dato.cuenta_origen_conciliacion_cuadratica.acc_number,
                     'monto': dato.amount,
                     'mes': mes,
                 })
@@ -207,14 +207,14 @@ class ReporteConciliacionCuadraticaWizard(models.TransientModel):
             if lineas_unificadas[10:]:
                 resto = lineas_unificadas[10:]
                 pagos_resto = [r for r in resto if r._name == 'account.payment']
-                tablero_resto = [r for r in resto if r._name == 'account.bank.statement.line']
+                apuntes_resto = [r for r in resto if r._name == 'account.bank.statement.line']
                 resto_pagos_m = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_mensuales(pagos_resto)
-                resto_tablero_m = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_tablero_por_mes(tablero_resto, dict['year'])['final']
-                otras_dividendos_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].sumar_pagos_tablero(resto_pagos_m, resto_tablero_m)
+                resto_apuntes_m = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_apuntes_por_mes(apuntes_resto, dict['year'])['final']
+                otras_dividendos_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].sumar_pagos_apuntes(resto_pagos_m, resto_apuntes_m)
             total_egresos.append(dividendos_mensual)
 
-            cxp_socios_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('outbound', tablero=base_tablero, pago_conciliacion='cxp_socios')['tablero']
-            cxp_socios_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_tablero_por_mes(cxp_socios_datos, dict['year'])
+            cxp_socios_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('outbound', apuntes=base_apuntes, pago_conciliacion='cxp_socios')['apuntes']
+            cxp_socios_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_apuntes_por_mes(cxp_socios_datos, dict['year'])
             cxp_socios_mensual = cxp_socios_resultado['final']
             cxp_socios_transito = cxp_socios_resultado['transito']
             transitos_egresos.append(cxp_socios_transito)
@@ -223,15 +223,15 @@ class ReporteConciliacionCuadraticaWizard(models.TransientModel):
                 if dato.date_conciliado and dato.date_conciliado.year == dict['year']:
                     cxp_socios_lines.append({
                         'socio': dato.partner_id.name,
-                        'banco': dato.banco_origen_conciliacion_cuadratica,
-                        'cuenta': dato.cuenta_origen_conciliacion_cuadratica.name,
+                        'banco': dato.banco_origen_conciliacion_cuadratica.name,
+                        'cuenta': dato.cuenta_origen_conciliacion_cuadratica.acc_number,
                         'monto': dato.amount,
                         'mes': dato.date_conciliado.month,
                     })
             total_egresos.append(cxp_socios_mensual)
 
-            cxp_relacionadas_locales_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('outbound', tablero=base_tablero, pago_conciliacion='cxp_relacionadas_locales')['tablero']
-            cxp_relacionadas_locales_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_tablero_por_mes(cxp_relacionadas_locales_datos, dict['year'])
+            cxp_relacionadas_locales_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('outbound', apuntes=base_apuntes, pago_conciliacion='cxp_relacionadas_locales')['apuntes']
+            cxp_relacionadas_locales_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_apuntes_por_mes(cxp_relacionadas_locales_datos, dict['year'])
             cxp_relacionadas_locales_mensual = cxp_relacionadas_locales_resultado['final']
             cxp_relacionadas_locales_transito = cxp_relacionadas_locales_resultado['transito']
             transitos_egresos.append(cxp_relacionadas_locales_transito)
@@ -240,15 +240,15 @@ class ReporteConciliacionCuadraticaWizard(models.TransientModel):
                 if dato.date_conciliado and dato.date_conciliado.year == dict['year']:
                     cxp_relacionadas_locales_lines.append({
                         'empresa': dato.partner_id.name,
-                        'banco': dato.banco_origen_conciliacion_cuadratica,
-                        'cuenta': dato.cuenta_origen_conciliacion_cuadratica.name,
+                        'banco': dato.banco_origen_conciliacion_cuadratica.name,
+                        'cuenta': dato.cuenta_origen_conciliacion_cuadratica.acc_number,
                         'monto': dato.amount,
                         'mes': dato.date_conciliado.month,
                     })
             total_egresos.append(cxp_relacionadas_locales_mensual)
 
-            cxp_relacionadas_exterior_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('outbound', tablero=base_tablero, pago_conciliacion='cxp_relacionadas_exterior')['tablero']
-            cxp_relacionadas_exterior_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_tablero_por_mes(cxp_relacionadas_exterior_datos, dict['year'])
+            cxp_relacionadas_exterior_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('outbound', apuntes=base_apuntes, pago_conciliacion='cxp_relacionadas_exterior')['apuntes']
+            cxp_relacionadas_exterior_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_apuntes_por_mes(cxp_relacionadas_exterior_datos, dict['year'])
             cxp_relacionadas_exterior_mensual = cxp_relacionadas_exterior_resultado['final']
             cxp_relacionadas_exterior_transito = cxp_relacionadas_exterior_resultado['transito']
             transitos_egresos.append(cxp_relacionadas_exterior_transito)
@@ -257,15 +257,15 @@ class ReporteConciliacionCuadraticaWizard(models.TransientModel):
                 if dato.date_conciliado and dato.date_conciliado.year == dict['year']:
                     cxp_relacionadas_exterior_lines.append({
                         'empresa': dato.partner_id.name,
-                        'banco': dato.banco_origen_conciliacion_cuadratica,
-                        'cuenta': dato.cuenta_origen_conciliacion_cuadratica.name,
+                        'banco': dato.banco_origen_conciliacion_cuadratica .name,
+                        'cuenta': dato.cuenta_origen_conciliacion_cuadratica.acc_number,
                         'monto': dato.amount,
                         'mes': dato.date_conciliado.month,
                     })
             total_egresos.append(cxp_relacionadas_exterior_mensual) 
 
-            cxp_transfer_interempresa_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('outbound', tablero=base_tablero, pago_conciliacion='transfer_interempresa')['tablero']
-            cxp_transfer_interempresa_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_tablero_por_mes(cxp_transfer_interempresa_datos, dict['year'])
+            cxp_transfer_interempresa_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('outbound', apuntes=base_apuntes, pago_conciliacion='transfer_interempresa')['apuntes']
+            cxp_transfer_interempresa_resultado = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_apuntes_por_mes(cxp_transfer_interempresa_datos, dict['year'])
             cxp_transfer_interempresa_mensual = cxp_transfer_interempresa_resultado['final']
             cxp_transfer_interempresa_transito = cxp_transfer_interempresa_resultado['transito']
             transitos_egresos.append(cxp_transfer_interempresa_transito)
@@ -273,14 +273,14 @@ class ReporteConciliacionCuadraticaWizard(models.TransientModel):
             for dato in cxp_transfer_interempresa_datos:
                 if dato.date_conciliado and dato.date_conciliado.year == dict['year']:
                     cxp_transfer_interempresa_lines.append({
-                        'banco': dato.banco_origen_conciliacion_cuadratica,
-                        'cuenta': dato.cuenta_origen_conciliacion_cuadratica.name,
+                        'banco': dato.banco_origen_conciliacion_cuadratica.name,
+                        'cuenta': dato.cuenta_origen_conciliacion_cuadratica.acc_number,
                         'monto': dato.amount,
                         'mes': dato.date_conciliado.month,
                     })
             total_egresos.append(cxp_transfer_interempresa_mensual) 
 
-            otros_egresos_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_datos('outbound', pagos=base_pagos, pago_conciliacion= 'otros_egresos')['pagos']
+            otros_egresos_datos = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].filtrar_movimientos_por_tipo_conciliacion('outbound', pagos=base_pagos, pago_conciliacion= 'otros_egresos')['pagos']
             otros_egresos_mensual = self.env['report.conciliacion_cuadratica.reporte_conciliacion'].obtener_montos_mensuales(otros_egresos_datos)
             otros_egresos_lines = []
             for dato in otros_egresos_datos:

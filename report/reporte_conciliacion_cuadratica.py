@@ -44,7 +44,7 @@ class ReporteConciliacionCuadratica(models.AbstractModel):
         resultados = [saldo_incial_mensual, saldo_final_mensual]
         return resultados
 
-    def filtrar_datos(self, tipo_pago, pagos=[], tablero=[], tipo_conciliacion=None, pago_conciliacion=None, origen=None):
+    def filtrar_movimientos_por_tipo_conciliacion(self, tipo_pago, pagos=[], apuntes=[], tipo_conciliacion=None, pago_conciliacion=None, origen=None):
         if pagos:
             if tipo_pago == 'inbound':
                 pagos = pagos.filtered(lambda p: p.payment_type == 'inbound')
@@ -63,47 +63,47 @@ class ReporteConciliacionCuadratica(models.AbstractModel):
         elif tipo_conciliacion == 'cxc_interempresa':
             pagos = pagos.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXC Interempresa')
         elif tipo_conciliacion == 'cxc_socios':
-            tablero = tablero.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXC Socios')
+            apuntes = apuntes.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXC Socios')
         elif tipo_conciliacion == 'cxc_empleados':
             pagos = pagos.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXC Empleados')
-            tablero = tablero.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXC Empleados')
+            apuntes = apuntes.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXC Empleados')
         elif tipo_conciliacion == 'anticipo_clientes':
-            pagos = pagos.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'Anticipo a Clientes')
-            tablero = tablero.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'Anticipo a Clientes')
+            pagos = pagos.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXC Anticipo a Clientes')
+            apuntes = apuntes.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXC Anticipo a Clientes')
         elif tipo_conciliacion == 'intereses_ganados':
-            tablero = tablero.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'Intereses Ganados')
+            apuntes = apuntes.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXC Intereses Ganados')
         elif tipo_conciliacion == 'transfer_interempresa':
-            tablero = tablero.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'Transferencias Interempresa')
+            apuntes = apuntes.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXC Transferencias Interempresa')
         elif tipo_conciliacion == 'otros_ingresos':
-            pagos = pagos.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'Otros Ingresos')
+            pagos = pagos.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXC Otros Ingresos')
 
         #filtros de egresos
         if pago_conciliacion == 'gastos_operativos':
-            pagos = pagos.filtered(lambda p: p.tipo_conciliacion_cuadratica_pago == 'Gastos Operativos')
+            pagos = pagos.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXP Gastos Operativos')
         elif pago_conciliacion == 'anticipos':
-            pagos = pagos.filtered(lambda p: p.tipo_conciliacion_cuadratica_pago == 'Anticipos')
-            tablero = tablero.filtered(lambda p: p.tipo_conciliacion_cuadratica_pago == 'Anticipos')
+            pagos = pagos.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXP Anticipos')
+            apuntes = apuntes.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXP Anticipos')
         elif pago_conciliacion == 'prestamos':
-            tablero = tablero.filtered(lambda p: p.tipo_conciliacion_cuadratica_pago == 'Prestamos')
+            apuntes = apuntes.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXP Prestamos')
         elif pago_conciliacion == 'dividendos':
-            pagos = pagos.filtered(lambda p: p.tipo_conciliacion_cuadratica_pago == 'Dividendos')
-            tablero = tablero.filtered(lambda p: p.tipo_conciliacion_cuadratica_pago == 'Dividendos')
+            pagos = pagos.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXP Dividendos')
+            apuntes = apuntes.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXP Dividendos')
         elif pago_conciliacion == 'cxp_socios':
-            tablero = tablero.filtered(lambda p: p.tipo_conciliacion_cuadratica_pago == 'CXP Socios')
+            apuntes = apuntes.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXP Socios')
         elif pago_conciliacion == 'cxp_relacionadas_locales':
-            tablero = tablero.filtered(lambda p: p.tipo_conciliacion_cuadratica_pago == 'CXP Relacionadas Locales')
+            apuntes = apuntes.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXP Relacionadas Locales')
         elif pago_conciliacion == 'cxp_relacionadas_exterior':
-            tablero = tablero.filtered(
-                lambda t: not t.tipo_conciliacion_cuadratica_pago and 
-                        (t.partner_id.country_id and t.partner_id.country_id.code != 'GT') and t.amount < 0) 
+            apuntes = apuntes.filtered(
+                lambda t: not t.tipo_conciliacion_cuadratica and
+                        (t.partner_id.country_id and t.partner_id.country_id.code != 'GT') and t.amount < 0)
         elif pago_conciliacion == 'transfer_interempresa':
-            tablero = tablero.filtered(lambda p: p.tipo_conciliacion_cuadratica_pago == 'Transferencias Interempresa')
+            apuntes = apuntes.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXP Transferencias Interempresa')
         elif pago_conciliacion == 'otros_egresos':
-            pagos = pagos.filtered(lambda p: p.tipo_conciliacion_cuadratica_pago == 'Otros Egresos')    
+            pagos = pagos.filtered(lambda p: p.tipo_conciliacion_cuadratica == 'CXP Otros Egresos')
 
         return {
             'pagos': pagos,
-            'tablero': tablero,
+            'apuntes': apuntes,
         }
 
     def obtener_montos_mensuales(self, datos):
@@ -120,7 +120,7 @@ class ReporteConciliacionCuadratica(models.AbstractModel):
                 totales[mes] += d[mes]
         return totales
 
-    def obtener_montos_tablero_por_mes(self, lineas, year):
+    def obtener_montos_apuntes_por_mes(self, lineas, year):
         final = [0.0] * 12
         transito = [0.0] * 12
 
@@ -160,5 +160,5 @@ class ReporteConciliacionCuadratica(models.AbstractModel):
             'transito': transito
         }
 
-    def sumar_pagos_tablero(self, p, t):
+    def sumar_pagos_apuntes(self, p, t):
         return [p[i] + t[i] for i in range(12)]

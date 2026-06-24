@@ -1,20 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
 
-        <record id="conciliacion_cuadratica_view_account_payment_form" model="ir.ui.view">
-            <field name="name">conciliacion_cuadratica.account.payment.form</field>
-            <field name="model">account.payment</field>
-            <field name="inherit_id" ref="account.view_account_payment_form"/>
-            <field name="arch" type="xml">
-                <field name="ref" position="after">
-                    <field name="tipo_conciliacion_cuadratica" invisible="payment_type != 'inbound'"/>
-                    <field name="tipo_conciliacion_cuadratica_pago" invisible="payment_type != 'outbound'"/>
-                    <field name="cuenta_origen_conciliacion_cuadratica" invisible="tipo_conciliacion_cuadratica == False and tipo_conciliacion_cuadratica_pago == False"/>
-                    <field name="banco_origen_conciliacion_cuadratica" invisible="tipo_conciliacion_cuadratica == False and tipo_conciliacion_cuadratica_pago == False"/>
-                </field>
+    <record id="conciliacion_cuadratica_view_account_payment_form" model="ir.ui.view">
+        <field name="name">conciliacion_cuadratica.account.payment.form</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <field name="ref" position="after">
+                <field name="tipo_conciliacion_cuadratica"/>
+                <field name="cuenta_origen_conciliacion_cuadratica" invisible="not tipo_conciliacion_cuadratica" required="tipo_conciliacion_cuadratica"/>
+                <field name="banco_origen_conciliacion_cuadratica" invisible="not tipo_conciliacion_cuadratica"/>
             </field>
-        </record>
+        </field>
+    </record>
 
-    </data>
 </odoo>
